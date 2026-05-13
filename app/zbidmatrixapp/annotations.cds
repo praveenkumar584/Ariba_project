@@ -1,0 +1,1 @@
+using apiServiceConsumption as service from '../../srv/apiServiceConsumption';

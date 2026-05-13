@@ -1,0 +1,33 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "command": "cds watch --profile hybrid",
+      "name": "APIDebugger",
+      "request": "launch",
+      "type": "node-terminal",
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "Run Z_BID_MATRIX-1",
+      "request": "launch",
+      "type": "node",
+      "cwd": "${workspaceFolder}",
+      "runtimeExecutable": "cds",
+      "args": [
+        "serve",
+        "--in-memory?"
+      ],
+      "console": "internalConsole",
+      "internalConsoleOptions": "openOnSessionStart",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "envFile": "${workspaceFolder}/.env1",
+      "env": {
+        "NODE_ENV": "development",
+        "run.config": "{\"handlerId\":\"cap_run_config_handler_id\",\"runnableId\":\"{\\\"projectPath\\\":\\\"/home/user/projects/Z_BID_MATRIX\\\",\\\"profileName\\\":\\\"development\\\"}\"}"
+      }
+    }
+  ]
+}

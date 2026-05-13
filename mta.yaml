@@ -1,0 +1,142 @@
+_schema-version: 3.3.0
+ID: Z_BID_MATRIX
+description: A simple CAP project.
+version: 1.0.0
+modules:
+  - name: Z_BID_MATRIX-srv
+    type: nodejs
+    path: gen/srv
+    requires:
+      - name: Z_BID_MATRIX-connectivity
+      - name: Z_BID_MATRIX-destination
+      - name: Z_BID_MATRIX-xsuaa # ADD THIS
+    provides:
+      - name: srv-api
+        properties:
+          srv-url: ${default-url}
+    parameters:
+      buildpack: nodejs_buildpack
+      instances: 1
+    build-parameters:
+      builder: npm-ci
+
+  - name: Z_BID_MATRIX
+    type: approuter.nodejs
+    path: app/router
+    requires:
+      - name: srv-api
+        group: destinations
+        properties:
+          forwardAuthToken: true
+          name: srv-api
+          url: ~{srv-url}
+      - name: Z_BID_MATRIX-destination
+      - name: Z_BID_MATRIX-html5-runtime
+      - name: Z_BID_MATRIX-xsuaa # ADD THIS
+    provides:
+      - name: app-api
+        properties:
+          app-protocol: ${protocol}
+          app-uri: ${default-uri}
+    parameters:
+      disk-quota: 256M
+      keep-existing-routes: true
+      memory: 256M
+
+  - name: Z_BID_MATRIX-app-deployer
+    type: com.sap.application.content
+    path: gen
+    requires:
+      - name: srv-api
+      - name: Z_BID_MATRIX-html5-repo-host
+        parameters:
+          config:
+            HTML5Runtime_enabled: true
+          content-target: true
+      - name: Z_BID_MATRIX-xsuaa
+    build-parameters:
+      build-result: app/
+      requires:
+        - artifacts:
+            - zbidmatrixapp.zip
+          name: zbidmatrixapp
+          target-path: app/
+
+  - name: zbidmatrixapp
+    type: html5
+    path: app/zbidmatrixapp
+    build-parameters:
+      build-result: dist
+      builder: custom
+      commands:
+        - npm install
+        - npm run build:cf
+        - npm ci
+        - npm run build
+      supported-platforms:
+        []
+
+resources:
+  - name: Z_BID_MATRIX-xsuaa # ADD THIS ENTIRE BLOCK
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: xsuaa
+      service-plan: application
+      path: ./xs-security.json
+      config:
+        xsappname: Z_BID_MATRIX
+        tenant-mode: dedicated
+        oauth2-configuration:
+          credential-types:
+            - "binding-secret"
+            - "x509"
+          redirect-uris:
+            - https://*~{app-api/app-uri}/**
+    requires:
+      - name: app-api
+
+  - name: Z_BID_MATRIX-connectivity
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: connectivity
+      service-plan: lite
+
+  - name: Z_BID_MATRIX-destination
+    type: org.cloudfoundry.managed-service
+    parameters:
+      config:
+        HTML5Runtime_enabled: false
+        init_data:
+          instance:
+            destinations:
+              - Authentication: NoAuthentication
+                Name: ui5
+                ProxyType: Internet
+                Type: HTTP
+                URL: https://ui5.sap.com
+            existing_destinations_policy: update
+      service: destination
+      service-plan: lite
+
+  - name: Z_BID_MATRIX-html5-repo-host
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-host
+
+  - name: Z_BID_MATRIX-html5-runtime
+    type: org.cloudfoundry.managed-service
+    parameters:
+      service: html5-apps-repo
+      service-plan: app-runtime
+
+parameters:
+  deploy_mode: html5-repo
+  enable-parallel-deployments: true
+
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production

@@ -1,0 +1,2 @@
+sap.ui.define([],()=>{"use strict";let e=false;return{shouldRenderLogo(t,n,s){const i=1;const o=XLSX.utils.decode_col("B");const r=`${t},${n}`;const c=s[r];if(!e&&t===i&&n===o&&(!s[r]||c)){e=true;return true}return false},getLogoHTML(){return`<div style="width:100%;height:100%;display:flex;justify-content:center;align-items:center;">\n                    <img src="images/logo.png" \n                         style="width:180px;height:50px;object-fit:contain;" />\n                </div>`},reset(){e=false}}});
+//# sourceMappingURL=logoHelper.js.map

@@ -1,0 +1,2 @@
+sap.ui.define([],()=>{"use strict";return{validate(e){if(!e||e.length===0){return{isValid:false,message:"Event ID cannot be empty."}}const t=/^Doc\d+$/;if(!t.test(e)){return{isValid:false,message:"Invalid Event ID format. Expected format: Doc followed by digits (e.g. Doc123456)."}}return{isValid:true,message:""}}}});
+//# sourceMappingURL=inputValidationHelper.js.map

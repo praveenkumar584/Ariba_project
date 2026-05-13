@@ -1,0 +1,126 @@
+{
+	"_version": "1.83.0",
+	"sap.app": {
+		"id": "zbidmatrixapp",
+		"type": "application",
+		"i18n": {
+			"bundleUrl": "i18n/i18n.properties",
+			"supportedLocales": [
+				""
+			]
+		},
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"resources": "resources.json",
+		"sourceTemplate": {
+			"id": "@sap/generator-fiori:basic",
+			"version": "1.22.0",
+			"toolsId": "5e5c95e6-f5ba-4044-ae4b-f6ce7a6083a9"
+		},
+		"dataSources": {
+			"mainService": {
+				"uri": "/odata/v4/api-service-consumption/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"odataVersion": "4.01"
+				}
+			}
+		}
+	},
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {
+			"icon": "",
+			"favIcon": "",
+			"phone": "",
+			"phone@2": "",
+			"tablet": "",
+			"tablet@2": ""
+		},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		}
+	},
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.147.1",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {}
+			}
+		},
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "zbidmatrixapp.i18n.i18n",
+					"supportedLocales": [
+						""
+					]
+				}
+			},
+			"": {
+				"dataSource": "mainService",
+				"preload": true,
+				"settings": {
+					"operationMode": "Server",
+					"autoExpandSelect": true,
+					"earlyRequests": true
+				}
+			}
+		},
+		"resources": {
+			"css": [
+				{
+					"uri": "css/style.css"
+				}
+			]
+		},
+		"routing": {
+			"config": {
+				"routerClass": "sap.m.routing.Router",
+				"controlAggregation": "pages",
+				"controlId": "app",
+				"transition": "slide",
+				"type": "View",
+				"viewType": "XML",
+				"path": "zbidmatrixapp.view",
+				"async": true,
+				"viewPath": "zbidmatrixapp.view"
+			},
+			"routes": [
+				{
+					"name": "Routez_main_view",
+					"pattern": "",
+					"target": [
+						"Targetz_main_view"
+					]
+				}
+			],
+			"targets": {
+				"Targetz_main_view": {
+					"id": "z_main_view",
+					"name": "z_main_view"
+				}
+			}
+		},
+		"rootView": {
+			"viewName": "zbidmatrixapp.view.App",
+			"type": "XML",
+			"id": "App",
+			"async": true
+		},
+		"flexBundle": false
+	}
+}

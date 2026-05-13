@@ -1,0 +1,23 @@
+GET http://localhost:4004/odata/v4/api-service-consumption/getAribaData
+Content-Type: application/json
+
+{
+  "eventId": "Doc2923397525"
+}
+
+
+
+
+###
+GET http://localhost:4004/odata/v4/api-service-consumption/getTemplateFile(eventId='Doc3032082443')
+
+
+
+
+###
+POST http://localhost:4004/odata/v4/api-service-consumption/downloadTemplateFile
+Content-Type: application/json
+
+{
+  "eventId": "Doc2923397525"
+}
