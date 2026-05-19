@@ -7,6 +7,7 @@
     "@sap/cds": "^9.9.1",
     "@sap/xsenv": "^6.2.0",
     "@sap/xssec": "^4",
+    "docusign-esign": "^9.0.0",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
     "passport": "^0.7.0"
