@@ -1,0 +1,58 @@
+<core:FragmentDefinition
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core">
+
+        <Dialog
+            id="docusignDialog"
+            title="Send To DocuSign"
+        contentWidth="400px">
+
+        <VBox id="_IDGenVBox4" class="sapUiMediumMargin">
+
+            <Label id="_IDGenLabel" text="Signer Email"/>
+
+            <ComboBox
+                id="emailCombo"
+                width="100%"
+                selectedKey="{dialogModel>/signerEmail}"
+                selectionChange=".onSignerSelectionChange"
+                items="{
+                    path: 'signerModel>/signers'
+                }">
+
+                <core:Item id="_IDGenItem"
+                    key="{signerModel>email}"
+                    text="{signerModel>email}" />
+
+            </ComboBox>
+
+            <Label id="_IDGenLabel1"
+                text="Signer Name"
+                class="sapUiSmallMarginTop"/>
+
+            <Input id="_IDGenInput"
+                value="{dialogModel>/signerName}"
+                editable="false"/>
+
+        </VBox>
+
+        <beginButton>
+
+            <Button id="_IDGenButton1"
+                text="Send"
+                type="Emphasized"
+                press=".onSendToDocusign"/>
+
+        </beginButton>
+
+        <endButton>
+
+            <Button id="_IDGenButton2"
+                text="Cancel"
+                press=".onCloseDocusignDialog"/>
+
+        </endButton>
+
+    </Dialog>
+
+</core:FragmentDefinition>

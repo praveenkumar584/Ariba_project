@@ -53,8 +53,8 @@ sap.ui.define([
             for (let r = range.s.r; r <= range.e.r; r++)
             {
                 const rowH = rowHeights[r]?.hpt
-                    ? `height:${Math.round(rowHeights[r].hpt * 1.33)}px;`
-                    : "height:22px;";
+                    ? `min-height:${Math.round(rowHeights[r].hpt * 1.33)}px;height:auto;`
+                    : "min-height:22px;height:auto;";
                 html += `<tr style="${rowH}">`;
                 html += `<td class="row-num">${r + 1}</td>`;
                 for (let c = range.s.c; c <= range.e.c; c++)
@@ -133,7 +133,16 @@ sap.ui.define([
                     }
                     const isHTML = typeof displayVal === "string" && displayVal.includes("<");
                     const applyBorder = (r >= 1 && c >= 1) ? "border:1.75px solid black;" : "";
-                    html += `<td${spanAttrs} style="${applyBorder}${style}" ${!isHTML ? `title="${displayVal}"` : ""}>${displayVal}</td>`;
+                    const autoWrapStyle = ` white-space: normal;
+                                            word-break: break-word;
+                                            overflow-wrap: anywhere;
+                                            overflow: visible;
+                                            text-overflow: unset;
+                                            height: auto;
+                                            vertical-align: top;
+                                            padding:4px;
+                                        `;
+                    html += `<td${spanAttrs} style="${applyBorder}${style}${autoWrapStyle}" ${!isHTML ? `title="${displayVal}"` : ""}>${displayVal}</td>`;
                 }
                 html += "</tr>";
             }

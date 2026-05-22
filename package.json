@@ -5,12 +5,18 @@
     "@sap-cloud-sdk/connectivity": "^4.6.0",
     "@sap-cloud-sdk/http-client": "^4.6.0",
     "@sap/cds": "^9.9.1",
-    "@sap/xsenv": "^6.2.0",
-    "@sap/xssec": "^4",
+    "@sap/xsenv": "^6.2.1",
+    "@sap/xssec": "^4.13.0",
     "docusign-esign": "^9.0.0",
     "exceljs": "^4.4.0",
     "express": "^5.2.1",
-    "passport": "^0.7.0"
+    "passport": "^0.7.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^5.7.284",
+    "pdfkit": "^0.18.0",
+    "pdfmake": "^0.2.7",
+    "sharp": "^0.34.5",
+    "svg2img": "^1.0.0-beta.2"
   },
   "devDependencies": {
     "@cap-js/sqlite": "^2",

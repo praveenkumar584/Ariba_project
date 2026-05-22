@@ -4,7 +4,7 @@ sap.ui.define([
 ], (MessageToast,BusyIndicator) => {
     "use strict";
     return {
-        async previewTemplate(oController)
+        async previewTemplate(oController, sBase64)
         {
             BusyIndicator.show(0);
             const oStrip = oController.byId("msgStrip");
@@ -14,7 +14,7 @@ sap.ui.define([
             }
             try
             {
-                const sBase64 = await oController.fetchBase64Data();
+                
                 oController.workbook = XLSX.read(sBase64, {
                     type: 'base64',
                     cellStyles: true,

@@ -1,5 +1,5 @@
 ###
-GET http://localhost:45409/odata/v4/api-service-consumption/getTemplateFile(eventId='Doc3032082443')
+GET http://localhost:4004/odata/v4/api-service-consumption/getTemplateFile(eventId='Doc3032082443')
 
 ###
 POST http://localhost:4004/odata/v4/api-service-consumption/sendToDocusign
@@ -8,4 +8,21 @@ Content-Type: application/json
 {
   "signerEmail": "gpraveen9870@gmail.com",
   "signerName": "Praveen Kumar G"
+}
+
+###
+POST http://localhost:4004/odata/v4/api-service-consumption/downloadSignedPdf
+Content-Type: application/json
+
+{
+  "envelopeId" : "11832c48-e01f-878d-81b3-74931f5b16f2"
+}
+
+###
+POST http://localhost:4004/odata/v4/api-service-consumption/sendToDocusign
+Content-Type: application/json
+
+{
+  "signerEmail": "sreyabommidala@gmail.com",
+  "signerName": "Sreya Bommidala"
 }

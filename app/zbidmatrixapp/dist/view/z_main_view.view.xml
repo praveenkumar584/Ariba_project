@@ -26,7 +26,8 @@
                     <items>
                         <Button id="_IDGenButton" text="Load Template" press="onLoadTemplate" type="Emphasized" />
                         <Button id="downloadBtn" text="Download" press="onDownload" enabled="false" icon="sap-icon://download" type="Ghost"/>
-                        <Button id="docusignBtn" text="Docusign" press="onSendToDocusign" enabled="false" icon="sap-icon://paper-plane" type="Emphasized" />
+                        <Button id="docusignBtn" text="Docusign" press=".onOpenDocusignDialog" enabled="{dialogModel>/isButtonEnabled}" icon="sap-icon://paper-plane" type="Emphasized" />
+                        <!-- <Button id="_IDGenButton3" text="Check Status" press="onCheckStatus"/> -->
                     </items>
                 </FlexBox>
             </VBox>
