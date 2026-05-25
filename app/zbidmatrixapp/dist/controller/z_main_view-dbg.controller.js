@@ -55,11 +55,13 @@ sap.ui.define([
                     previewHelper.previewTemplate(this, base64);
                     downloadBtn.setEnabled(true);
                     docusignBtn.setEnabled(true);
+                    this.byId("_IDGenButton3").setEnabled(true);
                 })
                 .catch((err) => {
                     BusyIndicator.hide();
                     downloadBtn.setEnabled(false);
                     docusignBtn.setEnabled(false);
+                    this.byId("_IDGenButton3").setEnabled(false);
                     if (err.code === "EVENT_NOT_FOUND") {
                         msgStrip.setText("Event ID does not exist. Please check and try again.");
                     }
@@ -110,28 +112,28 @@ sap.ui.define([
                 BusyIndicator.hide();
             }
         },
-        onOpenDocusignDialog: async function () {
+        onOpenDocusignDialog: async function ()
+        {
+            await DocusignHelper.openDialog(this);
+        },
+        onCloseDocusignDialog: function ()
+        {
+            DocusignHelper.closeDialog(this);
+        },
 
-                await DocusignHelper.openDialog(this);
-            },
+        onSignerSelectionChange: function (oEvent)
+        {
 
-            onCloseDocusignDialog: function () {
-
-                DocusignHelper.closeDialog(this);
-            },
-
-            onSignerSelectionChange: function (oEvent) {
-
-                DocusignHelper.handleSignerSelection(
-                    this,
-                    oEvent
-                );
-            },
-
-            onSendToDocusign: async function () {
-
-                await DocusignHelper.sendToDocusign(this);
-            },
+            DocusignHelper.handleSignerSelection(this,oEvent);
+        },
+        onSendToDocusign: async function ()
+        {
+            await DocusignHelper.sendToDocusign(this);
+        },
+        onCheckStatus: async function () 
+        {
+            await DocusignHelper.downloadSignedPdf(this);
+        },
         fetchBase64Data()
         {
             return contentFetchHelper.fetchBase64(this._eventId);

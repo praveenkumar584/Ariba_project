@@ -1,7 +1,4 @@
 const docusign =require('docusign-esign');
-const { promisify } = require('util');
-const { convertExcelToPdf } = require('./convertExcelToPdf');
-
 async function sendEnvelope(accessToken,accountId,excelBase64,signerEmail,signerName)
 {  
     const apiClient = new docusign.ApiClient();

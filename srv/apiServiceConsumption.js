@@ -4,7 +4,6 @@ const { getDestination } = require('@sap-cloud-sdk/connectivity');
 const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
-const PDFDocument = require('pdfkit');
 
 const { fillHeaderData, fillSupplierData,fillLineItemData } = require('./utils/dataFillingHelper');
 const { getAccessToken } = require('./utils/generatorOfToken');

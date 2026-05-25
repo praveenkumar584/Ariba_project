@@ -49,7 +49,5 @@ sap.ui.define([], () => {
         }
         return null;
     }
-    return {
-        getBackgroundColor
-    };
+    return { getBackgroundColor };
 });
