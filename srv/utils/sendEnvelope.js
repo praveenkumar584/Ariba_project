@@ -4,15 +4,14 @@ const { convertExcelToPdf } = require('./convertExcelToPdf');
 
 async function sendEnvelope(accessToken,accountId,excelBase64,signerEmail,signerName)
 {  
-    const pdfBase64 = await convertExcelToPdf(excelBase64);
     const apiClient = new docusign.ApiClient();
     apiClient.setBasePath( "https://demo.docusign.net/restapi" );
     apiClient.addDefaultHeader( "Authorization","Bearer " + accessToken);
     const envelopesApi =new docusign.EnvelopesApi( apiClient);
     const document = new docusign.Document();
-    document.documentBase64 = pdfBase64;
-    document.name = "BidDocument.pdf";
-    document.fileExtension = "pdf";
+    document.documentBase64 = excelBase64;
+    document.name = "BidDocument.xlsx";
+    document.fileExtension = "xlsx";
     document.documentId = "1";
     const signer = new docusign.Signer();
     signer.email = signerEmail;
@@ -20,10 +19,10 @@ async function sendEnvelope(accessToken,accountId,excelBase64,signerEmail,signer
     signer.recipientId = "1";
     signer.routingOrder = "1";
     const signHere = new docusign.SignHere();
-    signHere.documentId = "1";
-    signHere.pageNumber = "1";
-    signHere.xPosition = "300";
-    signHere.yPosition = "450";
+    signHere.anchorString = '/sn1/';
+    signHere.anchorUnits = 'pixels';
+    signHere.anchorXOffset = '10';
+    signHere.anchorYOffset = '10';
     const tabs = new docusign.Tabs();
     tabs.signHereTabs = [signHere];
     signer.tabs = tabs;
@@ -36,6 +35,6 @@ async function sendEnvelope(accessToken,accountId,excelBase64,signerEmail,signer
     envelopeDefinition.status = "sent";
     const result = await envelopesApi.createEnvelope(accountId,{envelopeDefinition});
     console.log("Envelope Sent. Envelope ID:", result.envelopeId);
-    return result;
+    return result.envelopeId;
 }
 module.exports = { sendEnvelope };

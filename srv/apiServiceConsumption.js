@@ -16,7 +16,7 @@ module.exports = cds.service.impl(function ()
 {
   this.on('getTemplateFile', async (req) => {
     try
-    {
+    {   
       const { eventId } = req.data;
       const dest = await getDestination({ destinationName: 'ARIBA_API_Consumption',forwardAuthToken: true });
 
@@ -88,12 +88,35 @@ module.exports = cds.service.impl(function ()
       fillSupplierData( worksheet, apiData);
       fillLineItemData(worksheet,lineItems,apiData,headerData)
 
+      workbook.worksheets.forEach((sheet) => {
+      if (sheet.name !== '1. MPBC')
+      {
+        workbook.removeWorksheet(sheet.id);
+      }
+      });
       workbook.calcProperties.fullCalcOnLoad = true;
       workbook.calcProperties.calcMode = 'auto';
-
-      const buffer = await workbook.xlsx.writeBuffer({useStyles: true, useSharedStrings: false });
-      const base64String = buffer.toString('base64');
-      var excelBase64 = base64String;
+      worksheet.pageSetup.orientation = 'landscape';
+      worksheet.pageSetup.paperSize = 3;
+      worksheet.pageSetup.fitToPage = true;
+      worksheet.pageSetup.fitToWidth = 1;
+      worksheet.pageSetup.fitToHeight = 1;
+      worksheet.pageSetup.printArea = undefined;
+      worksheet.rowBreaks = [];
+      worksheet.columnBreaks = [];
+      worksheet.pageSetup.margins = {
+        left: 0.2,
+        right: 0.2,
+        top: 0.2,
+        bottom: 0.2,
+        header: 0.1,
+        footer: 0.1
+      };
+      const buffer = await workbook.xlsx.writeBuffer({
+        useStyles: true,
+        useSharedStrings: false
+      });
+      const base64String = Buffer.from(buffer).toString('base64');
       this.excelBase64 = base64String;
       return base64String;
     }
@@ -103,7 +126,6 @@ module.exports = cds.service.impl(function ()
       req.error(500, error.message);
     }
   });
-
 
   this.on('sendToDocusign',async (req) =>{
     try
@@ -118,7 +140,7 @@ module.exports = cds.service.impl(function ()
 
       const bearerToken = await getAccessToken(docusign_dest);
       const envelope = await sendEnvelope( bearerToken.accessToken,accountId,excelBase64,signerEmail,signerName);
-      return [{envelopeId:envelope.envelopeId,status:"SENT"}];
+      return envelope;
     }
     catch (error)
     {

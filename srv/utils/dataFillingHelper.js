@@ -26,6 +26,7 @@ function fillHeaderData(workbook,worksheet, headerData)
         result: lookupResult
     };
     worksheet.getCell('D28').value = headerData.baselineSpend.currency || '';
+    worksheet.getCell('G74').value ='/sn1/';
 }
 
 //Suppliers part

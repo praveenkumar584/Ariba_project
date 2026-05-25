@@ -112,32 +112,28 @@ sap.ui.define([
                 BusyIndicator.hide();
             }
         },
-        onOpenDocusignDialog: async function () {
+        onOpenDocusignDialog: async function ()
+        {
+            await DocusignHelper.openDialog(this);
+        },
+        onCloseDocusignDialog: function ()
+        {
+            DocusignHelper.closeDialog(this);
+        },
 
-                await DocusignHelper.openDialog(this);
-            },
+        onSignerSelectionChange: function (oEvent)
+        {
 
-            onCloseDocusignDialog: function () {
-
-                DocusignHelper.closeDialog(this);
-            },
-
-            onSignerSelectionChange: function (oEvent) {
-
-                DocusignHelper.handleSignerSelection(
-                    this,
-                    oEvent
-                );
-            },
-
-            onSendToDocusign: async function () {
-
-                await DocusignHelper.sendToDocusign(this);
-            },
-            onCheckStatus: async function () 
-            {
-                await DocusignHelper.downloadSignedPdf(this);
-            },
+            DocusignHelper.handleSignerSelection(this,oEvent);
+        },
+        onSendToDocusign: async function ()
+        {
+            await DocusignHelper.sendToDocusign(this);
+        },
+        onCheckStatus: async function () 
+        {
+            await DocusignHelper.downloadSignedPdf(this);
+        },
         fetchBase64Data()
         {
             return contentFetchHelper.fetchBase64(this._eventId);
