@@ -7,8 +7,9 @@ sap.ui.define([
     "zbidmatrixapp/Helpers/inputValidationHelper",
     "zbidmatrixapp/Helpers/DocusignHelper",
     "sap/m/MessageToast",
-    "sap/ui/core/BusyIndicator"
-], (Controller, previewHelper, contentFetchHelper, tabContentHelper, contentRenderHelper, inputValidationHelper, DocusignHelper, MessageToast, BusyIndicator) => {
+    "sap/ui/core/BusyIndicator",
+    "sap/ui/model/json/JSONModel"
+], (Controller, previewHelper, contentFetchHelper, tabContentHelper, contentRenderHelper, inputValidationHelper, DocusignHelper, MessageToast, BusyIndicator, JSONModel) => {
     "use strict";
     return Controller.extend("zbidmatrixapp.controller.z_main_view", {
         workbook: null,
@@ -18,8 +19,9 @@ sap.ui.define([
         onInit()
         {
             DocusignHelper.loadInitialModels(this);
+            const oModel = new sap.ui.model.json.JSONModel({logo: sap.ui.require.toUrl("zbidmatrixapp/images/logo.png")});
+            this.getView().setModel(oModel, "imageModel");
         },
-
         onLoadTemplate()
         {
             const inputField = this.byId("eventIdInput");
@@ -47,10 +49,11 @@ sap.ui.define([
             BusyIndicator.show(0);
             this._eventId = eventId;
             contentFetchHelper.fetchBase64(eventId)
-                .then((base64) => {
+                .then(({ base64, downloadId }) => {
                     BusyIndicator.hide();
                     excelHTML.setVisible(true);
                     sap.ui.getCore().applyChanges();
+                    this._downloadId = downloadId;
                     this._base64Data = base64;
                     previewHelper.previewTemplate(this, base64);
                     downloadBtn.setEnabled(true);
@@ -72,31 +75,33 @@ sap.ui.define([
                     msgStrip.setType("Error");
                     msgStrip.setVisible(true);
                 });
+            this.byId("_IDGenVBox2").setVisible(false);
         },
-        onDownload()
+        async onDownload()
         {
             BusyIndicator.show(0);
             try
             {
-                const base64 = this._base64Data;
-                if (!base64)
+                const response = await fetch(`/odata/v4/api-service-consumption/downloadTemplateFile`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ downloadId: this._downloadId })
+                });
+                if (!response.ok)
                 {
-                    throw new Error("No file data available");
+                    throw new Error("HTTP " + response.status);
                 }
-                const byteCharacters = atob(base64);
-                const byteNumbers = Array.from(byteCharacters).map(c => c.charCodeAt(0));
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray],
-                    {
-                        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    }
-                );
-                const url = URL.createObjectURL(blob);
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
                 const a = document.createElement("a");
                 a.href = url;
-                a.download = this._eventId + ".xlsx";
+                a.download = "Bid_Template_filled.xlsx";
+                document.body.appendChild(a);
                 a.click();
-                URL.revokeObjectURL(url);
+                a.remove();
+                window.URL.revokeObjectURL(url);
                 MessageToast.show("File Downloaded Successfully!");
             }
             catch (err)
@@ -123,7 +128,6 @@ sap.ui.define([
 
         onSignerSelectionChange: function (oEvent)
         {
-
             DocusignHelper.handleSignerSelection(this,oEvent);
         },
         onSendToDocusign: async function ()

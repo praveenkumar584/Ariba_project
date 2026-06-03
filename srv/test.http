@@ -2,6 +2,14 @@
 GET http://localhost:4004/odata/v4/api-service-consumption/getTemplateFile(eventId='Doc3032082443')
 
 ###
+POST http://localhost:4004/odata/v4/api-service-consumption/downloadTemplateFile
+Content-Type: application/json
+
+{
+  "downloadId": "f314081b-e7f2-4bcb-beba-bdaff210462a"
+}
+
+###
 POST http://localhost:4004/odata/v4/api-service-consumption/sendToDocusign
 Content-Type: application/json
 

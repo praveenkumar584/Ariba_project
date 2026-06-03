@@ -138,6 +138,8 @@ sap.ui.define([
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL( downloadUrl);
                 sap.m.MessageToast.show("PDF Downloaded Successfully");
+                oController.envelopeId = null;
+                oController.getView().byId("_IDGenButton3").setEnabled(false);
             }
             catch (error)
             {

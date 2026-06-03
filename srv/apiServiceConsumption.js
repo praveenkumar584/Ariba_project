@@ -5,13 +5,15 @@ const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
 
+const globalCacheMap = new Map();
+
 const { fillHeaderData, fillSupplierData,fillLineItemData } = require('./utils/dataFillingHelper');
 const { getAccessToken } = require('./utils/generatorOfToken');
 const { sendEnvelope } = require('./utils/sendEnvelope');
 const { checkEnvelopeStatus } = require('./utils/checkEnvelopeStatus');
 const { downloadSignedPdf } = require('./utils/downloadSignedPdf');
 
-module.exports = cds.service.impl(function ()
+module.exports = cds.service.impl(function () 
 {
   this.on('getTemplateFile', async (req) => {
     try
@@ -85,7 +87,17 @@ module.exports = cds.service.impl(function ()
 
       fillHeaderData(workbook,worksheet,headerData);
       fillSupplierData( worksheet, apiData);
-      fillLineItemData(worksheet,lineItems,apiData,headerData)
+      fillLineItemData(worksheet,lineItems,apiData,headerData);
+      workbook.calcProperties.fullCalcOnLoad = true;
+      workbook.calcProperties.calcMode = 'auto';
+
+      const fullWorkbookBuffer = await workbook.xlsx.writeBuffer({
+        useStyles: true,
+        useSharedStrings: false
+      });
+      const downloadId = cds.utils.uuid();
+      console.log(downloadId);
+      globalCacheMap.set(downloadId,fullWorkbookBuffer);
 
       workbook.worksheets.forEach((sheet) => {
       if (sheet.name !== '1. MPBC')
@@ -93,8 +105,6 @@ module.exports = cds.service.impl(function ()
         workbook.removeWorksheet(sheet.id);
       }
       });
-      workbook.calcProperties.fullCalcOnLoad = true;
-      workbook.calcProperties.calcMode = 'auto';
       worksheet.pageSetup.orientation = 'landscape';
       worksheet.pageSetup.paperSize = 3;
       worksheet.pageSetup.fitToPage = true;
@@ -117,11 +127,32 @@ module.exports = cds.service.impl(function ()
       });
       const base64String = Buffer.from(buffer).toString('base64');
       this.excelBase64 = base64String;
-      return base64String;
+      return { base64: base64String ,downloadId: downloadId};
     }
     catch (error)
     {
       console.error("Error:", error.message);
+      req.error(500, error.message);
+    }
+  });
+  this.on("downloadTemplateFile",async (req) => {
+    try
+    {
+      const {downloadId}= req.data;
+      const workbookBuffer = globalCacheMap.get(downloadId);
+      if (!workbookBuffer)
+      {
+        req.error(404, 'Workbook not found');
+        return;
+      }
+      req._.res.setHeader( "Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+      req._.res.setHeader("Content-Disposition",`attachment; filename=Bid_Template_filled.xlsx`);
+      req._.res.end(workbookBuffer);
+      globalCacheMap.delete(downloadId);
+    }
+    catch (error)
+    {
+      console.error(error);
       req.error(500, error.message);
     }
   });
@@ -148,7 +179,7 @@ module.exports = cds.service.impl(function ()
     }
   });
 
-   this.on("downloadSignedPdf",async (req) => {
+  this.on("downloadSignedPdf",async (req) => {
     try
     {
       const { envelopeId } = req.data;

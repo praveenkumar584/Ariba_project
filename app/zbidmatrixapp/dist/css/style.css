@@ -181,3 +181,67 @@ td.row-num
 .customImage {
     margin-top: 7px;
 }
+
+
+.customInputHBox
+{
+    margin-left: 228px;
+    align-items: center;
+}
+.myCellPadding
+{
+    padding: 3px;
+}
+.howItWorksContainer
+{
+    padding: 0 2rem 0.5rem 2rem;
+    background: white;
+    border-radius: 12px;
+}
+.howItWorksHeader
+{
+    margin-left: -2rem; 
+    padding-left: 15px;
+    margin-right: -2rem;
+}
+.stepBox
+{
+    width: 220px;
+    text-align: center;
+}
+.stepCircle
+{
+    width: 100px;
+    height: 100px;
+    border-radius: 80%;
+    background: #eef4ff;
+    color: #2563eb;
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+.stepLine
+{
+    flex: 1;
+    height: 20px;
+    border-top: 2px dashed #1d1e1f;
+    margin-top: -75px;
+    min-width: 100px;
+}
+.stepTitle
+{
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+.stepDesc
+{
+    color: #4b5563;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: center;
+}
+ 
