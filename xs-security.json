@@ -6,7 +6,7 @@
     {
       "name": "$XSAPPNAME.Admin",
       "description": "Admin access"
-    },
+    },  
     {
       "name": "$XSAPPNAME.Viewer",
       "description": "Viewer access"
@@ -30,7 +30,12 @@
   ],
   "oauth2-configuration": {
     "redirect-uris": [
-      "https://samvardhana-motherson-international-limited-motherson-a1a03343d.cfapps.eu10-005.hana.ondemand.com/login/callback"
+      "https://samvardhana-motherson-international-limited-motherson-a1a03343d.cfapps.eu10-005.hana.ondemand.com/login/callback",
+      "https://*.cfapps.eu10-005.hana.ondemand.com/login/callback",
+      "https://*.hana.ondemand.com/**",
+      "https://*.ariba.com/**",
+      "https://*.s1-eu.ariba.com/**",
+      "https://eu.mu.ariba.com/**"
     ]
   },
   "attributes": []

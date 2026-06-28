@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cf deploy *)",
+      "Bash(rm -rf .Z_BID_MATRIX_mta_build_tmp Makefile_*.mta resources mta_archives)",
+      "Bash(/usr/local/bin/mbt build *)"
+    ]
+  }
+}

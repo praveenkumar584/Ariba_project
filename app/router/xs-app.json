@@ -31,7 +31,7 @@
   "responseHeaders": [
     {
       "name": "Content-Security-Policy",
-      "value": "frame-ancestors 'self' https://*.ariba.com"
+      "value": "frame-ancestors 'self' https://*.ariba.com https://*.s1-eu.ariba.com https://eu.mu.ariba.com"
     }
   ]
 }

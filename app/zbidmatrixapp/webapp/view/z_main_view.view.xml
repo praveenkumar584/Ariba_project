@@ -7,7 +7,7 @@
             <Panel id="_IDGenPanel" class="customPanel1" >
                 <VBox id="_IDGenVBox"  class="sapUiSmallMargin customVBox">
                     <HBox id="_IDGenHBox" alignItems="Center" class="myCellPadding1">
-                        <Image id="_IDGenImage" src="{path: 'imageModel>/logo'}" width="180px" class="sapUiLargeMarginEnd"/>
+                        <Image id="_IDGenImage" src="{path:'imageModel>/logo'}" width="180px" class="sapUiLargeMarginEnd"/>
                         <VBox id="_IDGenVBox1">
                             <Title id="_IDGenTitle" text="BID Matrix Comparison" level="H2"/>
                             <Text id="_IDGenText" text="Enter a bid event ID to load the comparison template and analyze bidder responses."/>

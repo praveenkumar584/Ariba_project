@@ -42,6 +42,9 @@ modules:
       disk-quota: 256M
       keep-existing-routes: true
       memory: 256M
+    properties:
+      COOKIES: '{"SameSite":"None"}'
+      SEND_XFRAMEOPTIONS: false
 
   - name: Z_BID_MATRIX-app-deployer
     type: com.sap.application.content

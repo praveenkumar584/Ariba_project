@@ -1,6 +1,6 @@
 const cds = require('@sap/cds');
 const { executeHttpRequest } = require('@sap-cloud-sdk/http-client');
-const { getDestination } = require('@sap-cloud-sdk/connectivity');
+const { getDestination } = require('@sap-cloud-sdk/connectivity'); 
 const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
