@@ -6,10 +6,11 @@ sap.ui.define([
     "zbidmatrixapp/Helpers/contentRenderHelper",
     "zbidmatrixapp/Helpers/inputValidationHelper",
     "zbidmatrixapp/Helpers/DocusignHelper",
+    "zbidmatrixapp/Helpers/editFunctionHelper",
     "sap/m/MessageToast",
     "sap/ui/core/BusyIndicator",
     "sap/ui/model/json/JSONModel"
-], (Controller, previewHelper, contentFetchHelper, tabContentHelper, contentRenderHelper, inputValidationHelper, DocusignHelper, MessageToast, BusyIndicator, JSONModel) => {
+], (Controller, previewHelper, contentFetchHelper, tabContentHelper, contentRenderHelper, inputValidationHelper, DocusignHelper, editFunctionHelper, MessageToast, BusyIndicator, JSONModel) => {
     "use strict";
     return Controller.extend("zbidmatrixapp.controller.z_main_view", {
         workbook: null,
@@ -30,10 +31,12 @@ sap.ui.define([
             const excelHTML = this.byId("_IDGenHTML");
             const downloadBtn = this.byId("downloadBtn");
             const docusignBtn = this.byId("docusignBtn");
+            const editBtn = this.byId("editBtn");
             msgStrip.setVisible(false);
             excelHTML.setVisible(false);
             downloadBtn.setEnabled(false);
             docusignBtn.setEnabled(false);
+            editBtn.setEnabled(false);
             const table = document.getElementById("excelTable");
             if (table) table.innerHTML = "";
             const tabBar = document.getElementById("sheetTabBar");
@@ -56,12 +59,14 @@ sap.ui.define([
                     this._downloadId = downloadId;
                     this._base64Data = base64;
                     previewHelper.previewTemplate(this, base64);
+                    editBtn.setEnabled(true);
                     downloadBtn.setEnabled(true);
                     docusignBtn.setEnabled(true);
                     this.byId("_IDGenButton3").setEnabled(true);
                 })
                 .catch((err) => {
                     BusyIndicator.hide();
+                    editBtn.setEnabled(false);
                     downloadBtn.setEnabled(false);
                     docusignBtn.setEnabled(false);
                     this.byId("_IDGenButton3").setEnabled(false);
@@ -151,6 +156,74 @@ sap.ui.define([
         renderSheetContent(sheetName)
         {
             contentRenderHelper.renderSheet(this, sheetName);
+        },onEdit: function ()
+        {
+            editFunctionHelper.enableEditMode(this);
+        },
+        onConsentSelect: function (oEvent)
+        { 
+            editFunctionHelper.handleConsentSelection(this,oEvent.getParameter("selected"));
+        },
+        async onSave()
+        {
+            BusyIndicator.show(0);
+            try
+            {
+                const changes = editFunctionHelper.fixEditChanges(this);
+                console.log("Changes to save:", changes);
+                /*
+                const response = await fetch("/odata/v4/api-service-consumption/updateWorkbook",
+                {
+                    method: "POST",
+                    headers:
+                    {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(
+                    {
+                        downloadId: this._downloadId,
+                        changes: JSON.stringify(changes)
+                    })
+                });
+                if (!response.ok)
+                {
+                    throw new Error("HTTP " + response.status);
+                }
+                const previewResponse = await fetch(`/odata/v4/api-service-consumption/getPreview(downloadId='${this._downloadId}')`);
+                if (!previewResponse.ok)
+                {
+                    throw new Error("HTTP " + previewResponse.status);
+                }
+                let base64 = await previewResponse.text();
+                try
+                {
+                    base64 = JSON.parse(base64).value;
+                }
+                catch (e)
+                {
+                    console.error("Failed to parse preview response:", e);
+                    return;
+                }
+                previewHelper.previewTemplate(this, base64);
+                */
+            }
+            catch (err)
+            {
+                const msgStrip = this.byId("msgStrip");
+                msgStrip.setText("Save failed. Please try again.");
+                msgStrip.setType("Error");
+                msgStrip.setVisible(true);
+                console.error(err);
+            }
+            finally
+            {
+                BusyIndicator.hide();
+            }
+        },
+        onCancel()
+        {
+            editFunctionHelper.disableEditMode(this);
+            // previewHelper.previewTemplate(this, this._base64Data);
         }
     });
 });

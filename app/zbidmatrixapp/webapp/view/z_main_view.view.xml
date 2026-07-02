@@ -20,14 +20,22 @@
                 </VBox>
             </Panel>
             <Panel id="_IDGenPanel1" headerText="Actions" class="myCellPadding">
-                <HBox id="_IDGenHBox2" class="sapUiSmallMargin" justifyContent="Start">
+                <HBox id="_IDGenHBox2" class="sapUiSmallMargin" justifyContent="Start" visible="true">
                     <Button id="_IDGenButton" text="Load Template" press="onLoadTemplate" type="Emphasized" width="150px" icon="sap-icon://document-text"/>
+                    <Button id="editBtn" text="Edit" press="onEdit" type="Default" width="150px" icon="sap-icon://edit" enabled="false" class="sapUiTinyMarginBegin"/>
                     <Button id="downloadBtn" text="Download" press="onDownload" type="Ghost" width="150px" icon="sap-icon://download" enabled="false" class="sapUiTinyMarginBegin"/>
                     <Button id="docusignBtn" text="DocuSign" press=".onOpenDocusignDialog" type="Emphasized" width="150px" icon="sap-icon://signature" enabled="{dialogModel>/isButtonEnabled}" class="sapUiTinyMarginBegin"/>
                     <Button id="_IDGenButton3" text="Check Status" press="onCheckStatus" type="Ghost" width="150px" icon="sap-icon://process" enabled="false" class="sapUiTinyMarginBegin"/>
                 </HBox>
                 <BusyIndicator id="busyIndicator" visible="false" class="sapUiSmallMarginTop"/>
                 <MessageStrip id="msgStrip" visible="false" class="sapUiSmallMarginTop"/>
+                <VBox id="editActionContainer" visible="false" justifyContent="Start" width="100%">
+                    <CheckBox id="consentCheck" text="I confirm that all manually entered values are correct." select="onConsentSelect" class="warningConsentCheck"/>
+                    <HBox id="_IDGenHBox4">
+                        <Button id="saveBtn" text="Save" type="Success" enabled="false" icon="sap-icon://save" press="onSave" class="sapUiTinyMarginBegin"/>
+                        <Button id="cancelBtn" text="Cancel" class="sapUiTinyMarginBegin" icon="sap-icon://decline" press="onCancel" type="Negative"/>
+                    </HBox>
+                </VBox>
             </Panel>
             <VBox id="_IDGenVBox2" class="howItWorksContainer" visible="true" >
                 <Toolbar id="_IDGenToolbar" design="Auto" class="sapUiSmallMarginBottom howItWorksHeader">

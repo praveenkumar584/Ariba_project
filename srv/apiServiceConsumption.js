@@ -202,4 +202,43 @@ module.exports = cds.service.impl(function ()
       req.error(500, error.message);
     }
   });
+  
+  this.on('updateWorkbook', async (req) => {
+    try
+    {
+      const { downloadId, changes } = req.data;
+      const workbookBuffer = globalCacheMap.get(downloadId);
+      if (!workbookBuffer)
+      {
+        req.error(404, 'Workbook not found');
+        return;
+      }
+      const workbook = new ExcelJS.Workbook();
+      await workbook.xlsx.load(workbookBuffer);
+      const worksheet = workbook.getWorksheet('1. MPBC');
+      if (!worksheet)
+      {
+        req.error(404, 'Worksheet not found');
+        return;
+      }
+      const editedCells = JSON.parse(changes);
+      editedCells.forEach((change) => {
+        const cell = worksheet.getCell(change.cell);
+        cell.value = change.value;
+      });
+      workbook.calcProperties.fullCalcOnLoad = true;
+      workbook.calcProperties.calcMode = 'auto';
+      const updatedBuffer = await workbook.xlsx.writeBuffer({
+        useStyles: true,
+        useSharedStrings: false
+      });
+      globalCacheMap.set(downloadId, updatedBuffer);
+      return 'Workbook Updated';
+    } 
+    catch (error)
+    {
+      console.error(error);
+      req.error(500, error.message);
+    }
+  });
 });
