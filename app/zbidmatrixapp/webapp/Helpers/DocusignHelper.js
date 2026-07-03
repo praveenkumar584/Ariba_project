@@ -17,8 +17,7 @@ sap.ui.define([
             });
             oController.getView().setModel(
                 oDialogModel,
-                "dialogModel"
-            );
+                "dialogModel");
         },
 
         openDialog: async function (oController)
@@ -63,6 +62,11 @@ sap.ui.define([
                     MessageBox.error("Please select signer email");
                     return;
                 }
+                if (!oController._downloadId)
+                {
+                    MessageBox.error("No template loaded. Please load a template first.");
+                    return;
+                }
                 sap.ui.core.BusyIndicator.show(0);
                 const response = await fetch("/odata/v4/api-service-consumption/sendToDocusign",
                     {
@@ -71,6 +75,7 @@ sap.ui.define([
                             "Content-Type": "application/json"
                         },
                         body: JSON.stringify({
+                            downloadId: oController._downloadId,
                             signerEmail: oDialogData.signerEmail,
                             signerName: oDialogData.signerName
                         })
@@ -87,6 +92,7 @@ sap.ui.define([
                 sap.ui.core.BusyIndicator.hide();
                 oController.getView().getModel("dialogModel").setProperty("/isButtonEnabled",false);
                 MessageToast.show("Envelope Sent Successfully to Docusign!");
+                oController.getView().byId("editBtn").setEnabled(false);
                 this.closeDialog(oController);
             }
             catch (error)

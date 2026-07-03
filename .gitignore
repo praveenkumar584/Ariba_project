@@ -2,6 +2,8 @@ node_modules/
 target/
 _out/
 gen/
+dist/
+*.log
 
 .cdsrc-private.json
 default-*.json

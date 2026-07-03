@@ -170,9 +170,10 @@ sap.ui.define([
             try
             {
                 const changes = editFunctionHelper.fixEditChanges(this);
-                console.log("Changes to save:", changes);
-                console.log("Download ID:", this._downloadId);
-                /*
+                if (!this._downloadId)
+                {
+                    throw new Error("No template loaded to save changes against.");
+                }
                 const response = await fetch("/odata/v4/api-service-consumption/updateWorkbook",
                 {
                     method: "POST",
@@ -188,25 +189,17 @@ sap.ui.define([
                 });
                 if (!response.ok)
                 {
-                    throw new Error("HTTP " + response.status);
+                    const errorText = await response.text();
+                    throw new Error(errorText || ("HTTP " + response.status));
                 }
-                const previewResponse = await fetch(`/odata/v4/api-service-consumption/getPreview(downloadId='${this._downloadId}')`);
-                if (!previewResponse.ok)
+                const result = await response.json();
+                const base64 = result.value;
+                if (base64)
                 {
-                    throw new Error("HTTP " + previewResponse.status);
+                    this._base64Data = base64;
+                    previewHelper.previewTemplate(this, base64);
                 }
-                let base64 = await previewResponse.text();
-                try
-                {
-                    base64 = JSON.parse(base64).value;
-                }
-                catch (e)
-                {
-                    console.error("Failed to parse preview response:", e);
-                    return;
-                }
-                previewHelper.previewTemplate(this, base64);
-                */
+                MessageToast.show("Changes saved. Download and DocuSign will now use the updated file.");
             }
             catch (err)
             {

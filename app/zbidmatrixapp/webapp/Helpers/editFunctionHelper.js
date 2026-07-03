@@ -3,6 +3,10 @@ sap.ui.define([
 ], function (MessageToast)
 {
     "use strict";
+    function cleanCellText(sText)
+    {
+        return String(sText || "").replace(/\u00A0/g, " ").replace(/[\u200B\uFEFF]/g, "").trim();
+    }
     return {
         enableEditMode: function (oController)
         {
@@ -23,7 +27,7 @@ sap.ui.define([
             {
                 changes.push({
                     cell: cell.dataset.cell,
-                    value: cell.innerText.trim()
+                    value: cleanCellText(cell.innerText)
                 });
                 cell.contentEditable = "false";
                 cell.classList.remove("editMode");
@@ -32,7 +36,6 @@ sap.ui.define([
             oController.byId("editActionContainer").setVisible(false);
             oController.byId("consentCheck").setSelected(false);
             oController.byId("saveBtn").setEnabled(false);
-            MessageToast.show("Changes Saved");
             return changes;
         },
 
@@ -62,7 +65,7 @@ sap.ui.define([
             {
                 changes.push({
                     cell: cell.dataset.cell,
-                    value: cell.innerText.trim()
+                    value: cleanCellText(cell.innerText)
                 });
             });
             return changes;

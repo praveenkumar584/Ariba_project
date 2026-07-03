@@ -1,154 +1,150 @@
 const cds = require('@sap/cds');
 const { executeHttpRequest } = require('@sap-cloud-sdk/http-client');
-const { getDestination } = require('@sap-cloud-sdk/connectivity'); 
+const { getDestination } = require('@sap-cloud-sdk/connectivity');
 const path = require('path');
 const fs = require('fs');
 const ExcelJS = require('exceljs');
 
-const globalCacheMap = new Map();
+const sessionStore = new Map();
+const targetSheet = '1. MPBC';
 
-const { fillHeaderData, fillSupplierData,fillLineItemData } = require('./utils/dataFillingHelper');
+const { fillHeaderData, fillSupplierData, fillLineItemData } = require('./utils/dataFillingHelper');
 const { getAccessToken } = require('./utils/generatorOfToken');
 const { sendEnvelope } = require('./utils/sendEnvelope');
 const { checkEnvelopeStatus } = require('./utils/checkEnvelopeStatus');
 const { downloadSignedPdf } = require('./utils/downloadSignedPdf');
 
-module.exports = cds.service.impl(function () 
+function sanitizeEditedValue(rawText)
+{
+  if (rawText === null || rawText === undefined)
+  {
+    return '';
+  }
+  let text = String(rawText).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u200B\uFEFF]/g, '').replace(/\u00A0/g, ' ').trim();
+  if (text === '')
+  {
+    return '';
+  }
+  const isPercent = /%$/.test(text);
+  const numericCandidate = text.replace(/%$/, '').replace(/^[$€£¥₹]\s?/, '').replace(/,/g, '').trim();
+  if (numericCandidate !== '' && !isNaN(numericCandidate) && !isNaN(parseFloat(numericCandidate)))
+  {
+    const num = parseFloat(numericCandidate);
+    return isPercent ? num / 100 : num;
+  }
+  return text;
+}
+
+async function buildDocusignBuffer(rawBuffer)
+{
+  const workbook = new ExcelJS.Workbook();
+  await workbook.xlsx.load(rawBuffer);
+  const worksheet = workbook.getWorksheet(targetSheet);
+  if (!worksheet)
+  {
+    throw new Error('Worksheet not found');
+  }
+  workbook.worksheets.forEach((sheet) => {
+    if (sheet.name !== targetSheet)
+    {
+      workbook.removeWorksheet(sheet.id);
+    }
+  });
+  worksheet.pageSetup.orientation = 'landscape';
+  worksheet.pageSetup.paperSize = 3;
+  worksheet.pageSetup.fitToPage = true;
+  worksheet.pageSetup.fitToWidth = 1;
+  worksheet.pageSetup.fitToHeight = 1;
+  worksheet.pageSetup.printArea = undefined;
+  worksheet.rowBreaks = [];
+  worksheet.columnBreaks = [];
+  worksheet.pageSetup.margins = {
+    left: 0.2,
+    right: 0.2,
+    top: 0.2,
+    bottom: 0.2,
+    header: 0.1,
+    footer: 0.1
+  };
+  const buffer = await workbook.xlsx.writeBuffer({
+    useStyles: true,
+    useSharedStrings: false
+  });
+  return buffer;
+}
+
+module.exports = cds.service.impl(function ()
 {
   this.on('getTemplateFile', async (req) => {
     try
-    {   
+    {
       const { eventId } = req.data;
-      const dest = await getDestination({ destinationName: 'ARIBA_API_Consumption',forwardAuthToken: true });
-
-      /*
-      const docusign_dest = await getDestination({ destinationName: 'DOCUSIGN_API',forwardAuthToken: true });
-      console.log("DOCUSIGN DESTINATION:", JSON.stringify(docusign_dest, null, 2));
-      const destConfig = docusign_dest?.originalProperties ?? {};
-      console.log(destConfig);  
-      const bearerToken = await getAccessToken(docusign_dest);
-      */
-
-      /*
-      if (!dest)
-      {
-        console.error("Destination NOT loaded");
-        req.error(500, "Destination not found");
-      }
-
-      console.log("Destination loaded:", dest.name);
-      console.log("DESTINATION:", JSON.stringify(dest, null, 2));
-      const destConfig = dest?.originalProperties ?? {};
-      const apiKey = destConfig.destinationConfiguration['URL.queries.apiKey'];
-      const baseURL = destConfig.destinationConfiguration['URL'] || dest?.url;
-      const token = dest?.authTokens?.[0]?.value;
-      console.log("Base URL:", baseURL);
-      console.log("apiKey:", apiKey);
-      console.log("token present:", !!token);
-      */
-
-      const [
-          response,
-          response1,
-          response2 ] = await Promise.all([
-              executeHttpRequest(dest, {
-              method: 'GET',
-              url: `/events/${eventId}/supplierInvitations`
-            }),
-            executeHttpRequest(dest, {
-            method: 'GET',
-            url: `/events/${eventId}`
-          }),
-            executeHttpRequest(dest, {
-            method: 'GET',
-            url: `/events/${eventId}/items`
-          })
-        ]);
- 
+      const dest = await getDestination({ destinationName: 'ARIBA_API_Consumption', forwardAuthToken: true });
+      const [response,response1,response2 ] = await Promise.all([
+        executeHttpRequest(dest, {
+          method: 'GET',
+          url: `/events/${eventId}/supplierInvitations`
+        }),
+        executeHttpRequest(dest, {
+          method: 'GET',
+          url: `/events/${eventId}`
+        }),
+        executeHttpRequest(dest, {
+          method: 'GET',
+          url: `/events/${eventId}/items`
+        })
+      ]);
       const apiData = response.data.payload || [];
-      const headerData = response1.data|| [];
-      const lineItems =response2?.data?.payload || [];
-
-      //console.log(JSON.stringify(lineItems, null, 2));
-
+      const headerData = response1.data || [];
+      const lineItems = response2?.data?.payload || [];
       const workbook = new ExcelJS.Workbook();
-      const filePath = path.join(__dirname, 'template','BID_motherson_V1_Original.xlsx');
+      const filePath = path.join(__dirname, 'template', 'BID_motherson_V1_Original.xlsx');
       if (!fs.existsSync(filePath))
       {
         req.error(404, 'Template not found');
         return;
       }
       await workbook.xlsx.readFile(filePath);
-      const worksheet = workbook.getWorksheet('1. MPBC');
+      const worksheet = workbook.getWorksheet(targetSheet);
       if (!worksheet)
       {
-        throw new Error("Worksheet not found");
+        throw new Error('Worksheet not found');
       }
-
-      fillHeaderData(workbook,worksheet,headerData);
-      fillSupplierData( worksheet, apiData);
-      fillLineItemData(worksheet,lineItems,apiData,headerData);
+      fillHeaderData(workbook, worksheet, headerData);
+      fillSupplierData(worksheet, apiData);
+      fillLineItemData(worksheet, lineItems, apiData, headerData);
       workbook.calcProperties.fullCalcOnLoad = true;
       workbook.calcProperties.calcMode = 'auto';
-
-      const fullWorkbookBuffer = await workbook.xlsx.writeBuffer({
+      const rawBuffer = await workbook.xlsx.writeBuffer({
         useStyles: true,
         useSharedStrings: false
       });
       const downloadId = cds.utils.uuid();
-      console.log(downloadId);
-      globalCacheMap.set(downloadId,fullWorkbookBuffer);
-
-      workbook.worksheets.forEach((sheet) => {
-      if (sheet.name !== '1. MPBC')
-      {
-        workbook.removeWorksheet(sheet.id);
-      }
-      });
-      worksheet.pageSetup.orientation = 'landscape';
-      worksheet.pageSetup.paperSize = 3;
-      worksheet.pageSetup.fitToPage = true;
-      worksheet.pageSetup.fitToWidth = 1;
-      worksheet.pageSetup.fitToHeight = 1;
-      worksheet.pageSetup.printArea = undefined;
-      worksheet.rowBreaks = [];
-      worksheet.columnBreaks = [];
-      worksheet.pageSetup.margins = {
-        left: 0.2,
-        right: 0.2,
-        top: 0.2,
-        bottom: 0.2,
-        header: 0.1,
-        footer: 0.1
-      };
-      const buffer = await workbook.xlsx.writeBuffer({
-        useStyles: true,
-        useSharedStrings: false
-      });
-      const base64String = Buffer.from(buffer).toString('base64');
-      this.excelBase64 = base64String;
-      return { base64: base64String ,downloadId: downloadId};
+      sessionStore.set(downloadId, { rawBuffer });
+      const docusignBuffer = await buildDocusignBuffer(rawBuffer);
+      const base64String = Buffer.from(docusignBuffer).toString('base64');
+      return { base64: base64String, downloadId: downloadId };
     }
     catch (error)
     {
-      console.error("Error:", error.message);
+      console.error('Error:', error.message);
       req.error(500, error.message);
     }
   });
-  this.on("downloadTemplateFile",async (req) => {
+
+  this.on('downloadTemplateFile', async (req) => {
     try
     {
-      const {downloadId}= req.data;
-      const workbookBuffer = globalCacheMap.get(downloadId);
-      if (!workbookBuffer)
+      const { downloadId } = req.data;
+      const session = sessionStore.get(downloadId);
+      if (!session)
       {
         req.error(404, 'Workbook not found');
         return;
       }
-      req._.res.setHeader( "Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-      req._.res.setHeader("Content-Disposition",`attachment; filename=Bid_Template_filled.xlsx`);
-      req._.res.end(workbookBuffer);
-      globalCacheMap.delete(downloadId);
+      req._.res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      req._.res.setHeader('Content-Disposition', 'attachment; filename=Bid_Template_filled.xlsx');
+      req._.res.end(session.rawBuffer);
     }
     catch (error)
     {
@@ -157,65 +153,19 @@ module.exports = cds.service.impl(function ()
     }
   });
 
-  this.on('sendToDocusign',async (req) =>{
-    try
-    {
-      const {signerEmail,signerName } = req.data;
-      excelBase64= this.excelBase64;
-      const docusign_dest = await getDestination({destinationName:'DOCUSIGN_API',forwardAuthToken:true});
-      const accountId=docusign_dest.originalProperties.DOCUSIGN_ACCOUNT_ID
-      console.log("DOCUSIGN DESTINATION:", JSON.stringify(docusign_dest, null, 2));
-      const destConfig = docusign_dest?.originalProperties ?? {};
-      console.log(destConfig); 
-
-      const bearerToken = await getAccessToken(docusign_dest);
-      const envelope = await sendEnvelope( bearerToken.accessToken,accountId,excelBase64,signerEmail,signerName);
-      return envelope;
-    }
-    catch (error)
-    {
-        console.log(error);
-        req.error( 500,error.message);
-    }
-  });
-
-  this.on("downloadSignedPdf",async (req) => {
-    try
-    {
-      const { envelopeId } = req.data;
-      const docusign_dest = await getDestination({destinationName:"DOCUSIGN_API",forwardAuthToken:true});
-      const bearerToken = await getAccessToken(docusign_dest);
-      const envelopeData = await checkEnvelopeStatus(bearerToken.accessToken,docusign_dest.originalProperties.DOCUSIGN_ACCOUNT_ID,envelopeId);
-      if (envelopeData.status !=="completed")
-      {
-        return JSON.stringify({status:"PENDING_SIGNATURE"});
-      }
-      const signedPdfBuffer =await downloadSignedPdf(bearerToken.accessToken,docusign_dest.originalProperties.DOCUSIGN_ACCOUNT_ID,envelopeId);
-      req._.res.setHeader( "Content-Type", "application/pdf");
-      req._.res.setHeader("Content-Disposition",`attachment; filename=SIGNED_${envelopeId}.pdf`);
-      req._.res.send(signedPdfBuffer);
-      return JSON.stringify({status:"COMPLETED",message:"Signed PDF downloaded successfully"});
-    } 
-    catch (error)
-    {
-      console.error(error);
-      req.error(500, error.message);
-    }
-  });
-  
   this.on('updateWorkbook', async (req) => {
     try
     {
       const { downloadId, changes } = req.data;
-      const workbookBuffer = globalCacheMap.get(downloadId);
-      if (!workbookBuffer)
+      const session = sessionStore.get(downloadId);
+      if (!session)
       {
         req.error(404, 'Workbook not found');
         return;
       }
       const workbook = new ExcelJS.Workbook();
-      await workbook.xlsx.load(workbookBuffer);
-      const worksheet = workbook.getWorksheet('1. MPBC');
+      await workbook.xlsx.load(session.rawBuffer);
+      const worksheet = workbook.getWorksheet(targetSheet);
       if (!worksheet)
       {
         req.error(404, 'Worksheet not found');
@@ -224,17 +174,68 @@ module.exports = cds.service.impl(function ()
       const editedCells = JSON.parse(changes);
       editedCells.forEach((change) => {
         const cell = worksheet.getCell(change.cell);
-        cell.value = change.value;
+        cell.value = sanitizeEditedValue(change.value);
       });
       workbook.calcProperties.fullCalcOnLoad = true;
       workbook.calcProperties.calcMode = 'auto';
-      const updatedBuffer = await workbook.xlsx.writeBuffer({
+      const updatedRawBuffer = await workbook.xlsx.writeBuffer({
         useStyles: true,
         useSharedStrings: false
       });
-      globalCacheMap.set(downloadId, updatedBuffer);
-      return 'Workbook Updated';
-    } 
+      sessionStore.set(downloadId, { rawBuffer: updatedRawBuffer });
+      const docusignBuffer = await buildDocusignBuffer(updatedRawBuffer);
+      const base64String = Buffer.from(docusignBuffer).toString('base64');
+      return { base64: base64String };
+    }
+    catch (error)
+    {
+      console.error(error);
+      req.error(500, error.message);
+    }
+  });
+
+  this.on('sendToDocusign', async (req) => {
+    try
+    {
+      const { downloadId, signerEmail, signerName } = req.data;
+      const session = sessionStore.get(downloadId);
+      if (!session)
+      {
+        req.error(404, 'Workbook not found. Please reload the template.');
+        return;
+      }
+      const docusignBuffer = await buildDocusignBuffer(session.rawBuffer);
+      const excelBase64 = Buffer.from(docusignBuffer).toString('base64');
+      const docusign_dest = await getDestination({ destinationName: 'DOCUSIGN_API', forwardAuthToken: true });
+      const accountId = docusign_dest.originalProperties.DOCUSIGN_ACCOUNT_ID;
+      const bearerToken = await getAccessToken(docusign_dest);
+      const envelope = await sendEnvelope(bearerToken.accessToken, accountId, excelBase64, signerEmail, signerName);
+      return envelope;
+    }
+    catch (error)
+    {
+      console.log(error);
+      req.error(500, error.message);
+    }
+  });
+
+  this.on('downloadSignedPdf', async (req) => {
+    try
+    {
+      const { envelopeId } = req.data;
+      const docusign_dest = await getDestination({ destinationName: 'DOCUSIGN_API', forwardAuthToken: true });
+      const bearerToken = await getAccessToken(docusign_dest);
+      const envelopeData = await checkEnvelopeStatus(bearerToken.accessToken, docusign_dest.originalProperties.DOCUSIGN_ACCOUNT_ID, envelopeId);
+      if (envelopeData.status !== 'completed')
+      {
+        return JSON.stringify({ status: 'PENDING_SIGNATURE' });
+      }
+      const signedPdfBuffer = await downloadSignedPdf(bearerToken.accessToken, docusign_dest.originalProperties.DOCUSIGN_ACCOUNT_ID, envelopeId);
+      req._.res.setHeader('Content-Type', 'application/pdf');
+      req._.res.setHeader('Content-Disposition', `attachment; filename=SIGNED_${envelopeId}.pdf`);
+      req._.res.send(signedPdfBuffer);
+      return JSON.stringify({ status: 'COMPLETED', message: 'Signed PDF downloaded successfully' });
+    }
     catch (error)
     {
       console.error(error);
