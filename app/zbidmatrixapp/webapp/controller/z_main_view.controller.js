@@ -171,6 +171,7 @@ sap.ui.define([
             {
                 const changes = editFunctionHelper.fixEditChanges(this);
                 console.log("Changes to save:", changes);
+                console.log("Download ID:", this._downloadId);
                 /*
                 const response = await fetch("/odata/v4/api-service-consumption/updateWorkbook",
                 {
