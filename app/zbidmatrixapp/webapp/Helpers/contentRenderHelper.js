@@ -88,6 +88,7 @@ sap.ui.define([
                     {
                         style += "font-weight:bold;";
                     }
+                    let isEditable = false;
                     if (cell && cell.s)
                     {
                         const s = cell.s;
@@ -96,6 +97,10 @@ sap.ui.define([
                         if (bgColor)
                         {
                             style += `background-color:${bgColor};`;
+                            if (bgColor.toUpperCase() === "#92D050" || bgColor.toUpperCase() === "#00B050" || bgColor.toUpperCase() === "#70AD47" )
+                            {
+                                isEditable = true;
+                            }
                         }
                         if (s.font)
                         {
@@ -142,7 +147,17 @@ sap.ui.define([
                                             vertical-align: top;
                                             padding:4px;
                                         `;
-                    html += `<td${spanAttrs} style="${applyBorder}${style}${autoWrapStyle}" ${!isHTML ? `title="${displayVal}"` : ""}>${displayVal}</td>`;
+                    html += `
+                        <td
+                        ${spanAttrs}
+                        data-cell="${cellAddr}"
+                        data-editable="${isEditable}"
+                        class="${isEditable ? "editableCell" : ""}"
+                        style="${applyBorder}${style}${autoWrapStyle}"
+                        ${!isHTML ? `title="${displayVal}"` : ""}
+                        >
+                        ${displayVal}
+                        </td>`;
                 }
                 html += "</tr>";
             }
