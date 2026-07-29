@@ -1,11 +1,13 @@
 sap.ui.define([
     "zbidmatrixapp/Helpers/logoHelper",
-    "zbidmatrixapp/Helpers/backgroundColourHelper"
-], (logoHelper,backgroundColourHelper) => {
+    "zbidmatrixapp/Helpers/backgroundColourHelper",
+    "sap/ui/core/BusyIndicator"
+], (logoHelper,backgroundColourHelper,BusyIndicator) => {
     "use strict";
     return {
         renderSheet(oController, sheetName)
         {
+            BusyIndicator.show(0);
             logoHelper.reset();
             const ws = oController.workbook.Sheets[sheetName];
             const table = document.getElementById("excelTable");
@@ -25,36 +27,31 @@ sap.ui.define([
                 mergeMap[`${m.s.r},${m.s.c}`] = m;
                 for (let r = m.s.r; r <= m.e.r; r++)
                 {
-                    for (let c = m.s.c; c <= m.e.c; c++)
+                    for(let c = m.s.c; c <= m.e.c; c++)
                     {
-                        if (r !== m.s.r || c !== m.s.c)
+                        if(r !== m.s.r || c !== m.s.c)
                         {
                             mergeSkip.add(`${r},${c}`);
                         }
                     }
                 }
             });
-            let html = '<colgroup><col style="width:42px"/>';
+            let html ='<colgroup><col style="width:42px"/>';
             for (let c = range.s.c; c <= range.e.c; c++)
             {
-                const wch = colWidths[c]?.wch
-                    ? Math.round(colWidths[c].wch * 7) + "px"
-                    : "80px";
-
+                const wch = colWidths[c]?.wch? Math.round(colWidths[c].wch * 7) + "px":"80px";
                 html += `<col style="width:${wch}"/>`;
             }
             html += "</colgroup>";
             html += '<tr class="col-header"><td class="row-num"></td>';
             for (let c = range.s.c; c <= range.e.c; c++)
             {
-                html += `<td>${XLSX.utils.encode_col(c)}</td>`;
+                html +=`<td>${XLSX.utils.encode_col(c)}</td>`;
             }
             html += "</tr>";
             for (let r = range.s.r; r <= range.e.r; r++)
             {
-                const rowH = rowHeights[r]?.hpt
-                    ? `min-height:${Math.round(rowHeights[r].hpt * 1.33)}px;height:auto;`
-                    : "min-height:22px;height:auto;";
+                const rowH = rowHeights[r]?.hpt? `min-height:${Math.round(rowHeights[r].hpt * 1.33)}px;height:auto;`:"min-height:22px;height:auto;";
                 html += `<tr style="${rowH}">`;
                 html += `<td class="row-num">${r + 1}</td>`;
                 for (let c = range.s.c; c <= range.e.c; c++)
@@ -67,17 +64,15 @@ sap.ui.define([
                         const m = mergeMap[key];
                         const rs = m.e.r - m.s.r + 1;
                         const cs = m.e.c - m.s.c + 1;
-                        if (rs > 1) spanAttrs += ` rowspan="${rs}"`;
-                        if (cs > 1) spanAttrs += ` colspan="${cs}"`;
+                        if (rs>1) spanAttrs +=` rowspan="${rs}"`;
+                        if (cs > 1) spanAttrs +=` colspan="${cs}"`;
                     }
                     const cellAddr = XLSX.utils.encode_cell({ r, c });
                     const cell = ws[cellAddr];
                     let displayVal = "";
                     if (cell)
                     {
-                        displayVal = cell.w !== undefined
-                            ? cell.w
-                            : (cell.v !== undefined ? String(cell.v) : "");
+                        displayVal = cell.w !== undefined? cell.w:(cell.v !== undefined ? String(cell.v) : "");
                     }
                     if (logoHelper.shouldRenderLogo(r, c, mergeMap))
                     {
@@ -86,9 +81,9 @@ sap.ui.define([
                     let style = "";
                     if(r===1 && c===3)
                     {
-                        style += "font-weight:bold;";
+                        style +="font-weight:bold;";
                     }
-                    let isEditable = false;
+                    let isEditable=false;
                     if (cell && cell.s)
                     {
                         const s = cell.s;
@@ -161,8 +156,11 @@ sap.ui.define([
                 }
                 html += "</tr>";
             }
-            table.innerHTML = html;
-            document.getElementById("excelTableContainer").scrollTo(0, 0);
+            requestAnimationFrame(() => {
+                table.innerHTML = html;
+                document.getElementById("excelTableContainer").scrollTo(0, 0);
+                BusyIndicator.hide();
+            });
         }
     };
 });

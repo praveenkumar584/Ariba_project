@@ -22,7 +22,7 @@ module.exports = cds.service.impl(function ()
     {
       const { eventId } = req.data;
       const dest = await getDestination({ destinationName: 'ARIBA_API_Consumption', forwardAuthToken: true });
-      const [response,response1,response2 ] = await Promise.all([
+      const [response,response1,response2,response3] = await Promise.all([
         executeHttpRequest(dest, {
           method: 'GET',
           url: `/events/${eventId}/supplierInvitations`
@@ -34,11 +34,18 @@ module.exports = cds.service.impl(function ()
         executeHttpRequest(dest, {
           method: 'GET',
           url: `/events/${eventId}/items`
+        }),
+        executeHttpRequest(dest, {
+          method: 'GET',
+          url: `/events/${eventId}/bidSummary`
         })
       ]);
       const apiData = response.data.payload || [];
       const headerData = response1.data || [];
       const lineItems = response2?.data?.payload || [];
+      const bidSummary = response3?.data || [];
+      const NoOfSupplierInvitation = apiData?.length || 0;
+      const NoOfSuppliers = bidSummary?.participatedCount || 0;
       const workbook = new ExcelJS.Workbook();
       const filePath = path.join(__dirname, 'template', 'BID_motherson_V1_Original.xlsx');
       if (!fs.existsSync(filePath))
@@ -63,9 +70,10 @@ module.exports = cds.service.impl(function ()
       });
       const downloadId = cds.utils.uuid();
       sessionStore.set(downloadId, { rawBuffer });
-      const docusignBuffer = await buildDocusignBuffer(rawBuffer);
-      const base64String = Buffer.from(docusignBuffer).toString('base64');
-      return { base64: base64String, downloadId: downloadId };
+      base64String = Buffer.from(rawBuffer).toString('base64');
+      //const docusignBuffer = await buildDocusignBuffer(rawBuffer);
+      //const base64String = Buffer.from(docusignBuffer).toString('base64');
+      return { base64:base64String,downloadId: downloadId,NoOfSuppliers: NoOfSuppliers};
     }
     catch (error)
     {

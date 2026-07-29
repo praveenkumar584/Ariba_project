@@ -2,22 +2,30 @@
 #sheetTabBar
 {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #ccc;
-    gap: 2px;
+    gap: 10px;
     background: #f0f0f0;
     padding: 6px 8px 0 8px;
     border: 1px solid #d1d1d1;
     border-bottom: none;
     border-radius: 6px 6px 0 0;
-    overflow-x: auto;
 }
 
+.sheet-tabs
+{
+    display: flex;
+    flex: 1;
+    gap: 4px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+}
 .zoom-controls
 {
     display: flex;
     gap: 6px;
+    margin-left: auto;
+    flex-shrink: 0;
 }
 
 .zoom-controls button

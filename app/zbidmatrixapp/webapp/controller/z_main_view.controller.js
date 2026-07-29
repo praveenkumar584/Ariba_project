@@ -52,12 +52,13 @@ sap.ui.define([
             BusyIndicator.show(0);
             this._eventId = eventId;
             contentFetchHelper.fetchBase64(eventId)
-                .then(({ base64, downloadId }) => {
+                .then(({ base64, downloadId, NoOfSuppliers}) => {
                     BusyIndicator.hide();
                     excelHTML.setVisible(true);
                     sap.ui.getCore().applyChanges();
                     this._downloadId = downloadId;
                     this._base64Data = base64;
+                    this._NoOfSuppliers = NoOfSuppliers;
                     previewHelper.previewTemplate(this, base64);
                     editBtn.setEnabled(true);
                     downloadBtn.setEnabled(true);
@@ -148,15 +149,17 @@ sap.ui.define([
             return contentFetchHelper.fetchBase64(this._eventId);
         },
 
-        buildSingleTabView(sheetName)
+        buildTabs(oController, sheets)
         {
-            tabContentHelper.buildSingleTab(this, sheetName);
+            console.log(tabContentHelper);
+            tabContentHelper.buildTabs(oController, sheets);
         },
 
         renderSheetContent(sheetName)
         {
             contentRenderHelper.renderSheet(this, sheetName);
-        },onEdit: function ()
+        },
+        onEdit: function ()
         {
             editFunctionHelper.enableEditMode(this);
         },

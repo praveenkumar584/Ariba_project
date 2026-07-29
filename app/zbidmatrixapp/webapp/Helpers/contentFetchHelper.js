@@ -39,11 +39,12 @@ sap.ui.define([], () => {
             const data = await res.json();
             const base64 = data.base64;
             const downloadId = data.downloadId;
+            const NoOfSuppliers = data.NoOfSuppliers;
             if (!base64)
             {
                 throw new Error("Empty response");
             }
-            return {base64, downloadId };
+            return {base64, downloadId, NoOfSuppliers };
         }
     };
 });

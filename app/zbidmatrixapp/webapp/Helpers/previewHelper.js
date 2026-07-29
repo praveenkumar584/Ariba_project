@@ -22,13 +22,23 @@ sap.ui.define([
                     cellDates: true,
                     sheetStubs: true
                 });
-                const sheetName = "1. MPBC";
-                if (!oController.workbook.Sheets[sheetName])
+
+                const sheetNames = oController.workbook.SheetNames;
+                const previewSheets=[];
+                if(sheetNames.includes("1. MPBC"))
                 {
-                    throw new Error("Sheet not found");
+                    previewSheets.push("1. MPBC");
                 }
-                oController.buildSingleTabView(sheetName);
-                oController.renderSheetContent(sheetName);
+                const countOfSuppliers = oController._NoOfSuppliers || 0;
+                for (let i = 1; i <= countOfSuppliers; i++)
+                {
+                    const sheetName = `Supp ${i} risk`;
+                    if(sheetNames.includes(sheetName))
+                    {
+                        previewSheets.push(sheetName);
+                    }
+                }
+                oController.buildTabs(oController, previewSheets);
                 document.getElementById("excelPreviewWrapper").style.display = "block";
                 MessageToast.show("Template loaded successfully!");
                 BusyIndicator.hide();
