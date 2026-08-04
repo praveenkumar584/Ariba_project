@@ -92,7 +92,7 @@ sap.ui.define([
                         if (bgColor)
                         {
                             style += `background-color:${bgColor};`;
-                            if (bgColor.toUpperCase() === "#92D050" || bgColor.toUpperCase() === "#00B050" || bgColor.toUpperCase() === "#70AD47" )
+                            if (bgColor.toUpperCase() === "#FE4402")
                             {
                                 isEditable = true;
                             }

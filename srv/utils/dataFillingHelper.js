@@ -5,7 +5,7 @@ function fillHeaderData(workbook,worksheet, headerData)
     worksheet.getCell('D8').value = headerData.owner.name || '';
     // worksheet.getCell('I9').value = headerData.regions[0].name || '';
     worksheet.getCell('I9').value = 'Brazil';
-    // const lookupValue = worksheet.getCell('I9').value;
+    //const lookupValue = worksheet.getCell('I9').value;
     const lookupValue = 'Brazil';
     const calcSheet = workbook.getWorksheet('calc');
     let lookupResult = "select country";
@@ -50,7 +50,6 @@ function fillSupplierData(worksheet, suppliers)
         worksheet.getCell(`${col}19`).value = address.country || '';
         worksheet.getCell(`${col}22`).value = item.registrationStatus || '';
     });
-
 }
 function fillLineItemData(worksheet, lineItems,apiData,headerData)
 {
@@ -65,12 +64,9 @@ function fillLineItemData(worksheet, lineItems,apiData,headerData)
         const lineItemTitle = item.title || "";
         const materialGroup = materialGroupTerm?.value?.simpleValue || "";
         const description = `${lineItemTitle} - ${materialGroup}`;
-
         const quantityTerm = item.terms?.find(term => term.fieldId === "QUANTITY");
         const quantity = quantityTerm?.value?.quantityValue?.amount || "";
-
         const unitOfMeasure = quantityTerm?.value?.quantityValue?.unitOfMeasureName || "";
-
         worksheet.getCell(`C${startRow}`).value = description;
         worksheet.getCell(`F${startRow}`).value = quantity;
         worksheet.getCell(`E${startRow}`).value = unitOfMeasure;
